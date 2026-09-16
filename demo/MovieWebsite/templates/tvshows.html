@@ -1,0 +1,10 @@
+{% extends "base.html" %} {% block content %}
+<h1> TV Shows list </h1>
+<ul>
+    {% for tvshow in tvshows %}
+    <li>
+        {{ tvshow.title }}: {{ tvshow.year }} - {{tvshow.toyear}}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
