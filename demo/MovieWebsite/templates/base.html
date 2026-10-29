@@ -94,14 +94,37 @@
             <li>
                 <a href="{% url 'tvshows' %}">TV Shows</a>
             </li>
+
+            {% if user.is_authenticated %}
+                <li>
+                    <form method="post" action="{% url 'logout' %}" class="logout">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'login' %}">Login</a>
+                </li>
+            {% endif %}
         </ul>
 
     </nav>
 
     <!-- Page content -->
-    <div class="content">
-        {% block content %}
-        {% endblock %}
+    <div id="content", class="content", name="content">
+        <div class="row justify-content-center">
+            <div class="col-8">
+                <h1 class="mt-2">HOME</h1>
+                <hr class="mt-0 mb-4">
+                {% if user.is_authenticated or request.path == "/login/" %}
+                    {% block content %}
+                    {% endblock %}
+                {% else %}
+                    <p>Login <a href="/login">here</a></p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
 
