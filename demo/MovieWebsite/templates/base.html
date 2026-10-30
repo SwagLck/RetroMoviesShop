@@ -95,6 +95,12 @@
                 <a href="{% url 'tvshows' %}">TV Shows</a>
             </li>
 
+            {% if user.is_staff %}
+            <li>
+                <a href="{% url 'userslist' %}">Users</a>
+            </li>
+            {% endif %}
+
             {% if user.is_authenticated %}
                 <li>
                     <form method="post" action="{% url 'logout' %}" class="logout">
