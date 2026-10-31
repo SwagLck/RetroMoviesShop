@@ -15,6 +15,9 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Navbar */
@@ -52,7 +55,21 @@
 
         /* Main content */
         .content {
+            flex: 1;
             padding: 30px;
+        }
+
+        .logout-btn{
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover{
+            color:#4CAF50;
         }
 
         /* Footer */
@@ -103,6 +120,10 @@
 
             {% if user.is_authenticated %}
                 <li>
+                    <a href ="{% url 'profile' user.username %}">Profile</a>
+                </li>
+            
+                <li>
                     <form method="post" action="{% url 'logout' %}" class="logout">
                         {% csrf_token %}
                         <button type="submit" class="logout-btn">Logout</button>
@@ -113,15 +134,16 @@
                     <a href="{% url 'login' %}">Login</a>
                 </li>
             {% endif %}
+
+            
         </ul>
 
     </nav>
 
     <!-- Page content -->
-    <div id="content", class="content", name="content">
+    <div id="content" class="content">
         <div class="row justify-content-center">
             <div class="col-8">
-                <h1 class="mt-2">HOME</h1>
                 <hr class="mt-0 mb-4">
                 {% if user.is_authenticated or request.path == "/login/" %}
                     {% block content %}

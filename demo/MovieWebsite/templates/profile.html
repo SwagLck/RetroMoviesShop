@@ -1,0 +1,12 @@
+{% extends "base.html" %} 
+
+{% block content %}
+
+<h1> Profile </h1>
+
+<h2> {{ profile_user.username }} </h2>
+<p> Email: {{ profile_user.email }}</p>
+<p> favorite genre: {{ profile.favorite_genre }}</p>
+<p> Biography: {{ profile.biography }}</p>
+
+{% endblock %}

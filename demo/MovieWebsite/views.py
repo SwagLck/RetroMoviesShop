@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Movie, TvShow
 from django.contrib.auth.decorators import login_required, user_passes_test
 
@@ -20,3 +20,14 @@ def tvshows(request):
 def userslist(request):
     users = User.objects.all()
     return render(request, "userslist.html", {"users": users})
+
+@login_required
+def profile(request, username):
+    profile_user = get_object_or_404(User, username = username)
+
+    user_profile = profile_user.profile
+
+    return render(request, "profile.html", {
+        "profile_user": profile_user,
+        "profile": user_profile,
+    })
