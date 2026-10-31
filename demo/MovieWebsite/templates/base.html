@@ -133,6 +133,10 @@
                 <li>
                     <a href="{% url 'login' %}">Login</a>
                 </li>
+
+                <li>
+                    <a href="{% url 'register' %}">Register</a>
+                </li>
             {% endif %}
 
             
@@ -145,12 +149,8 @@
         <div class="row justify-content-center">
             <div class="col-8">
                 <hr class="mt-0 mb-4">
-                {% if user.is_authenticated or request.path == "/login/" %}
-                    {% block content %}
-                    {% endblock %}
-                {% else %}
-                    <p>Login <a href="/login">here</a></p>
-                {% endif %}
+                {% block content %}
+                {% endblock %}
             </div>
         </div>
     </div>
