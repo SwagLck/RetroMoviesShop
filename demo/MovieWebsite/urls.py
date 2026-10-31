@@ -6,4 +6,5 @@ urlpatterns = [
     path("Movies/", views.movies, name="movies"),
     path("TvShows/", views.tvshows, name="tvshows"),
     path("Users/", views.userslist, name="userslist"),
+    path("profile/<str:username>/", views.profile, name="profile")
 ]
