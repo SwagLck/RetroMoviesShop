@@ -1,12 +1,21 @@
 {% extends "base.html" %} 
 
+{% load crispy_forms_tags %}
+
 {% block content %}
 
 <h1> Profile </h1>
 
 <h2> {{ profile_user.username }} </h2>
+<p> Name: {{ profile_user.first_name }}</p>
+<p> Last name: {{ profile_user.last_name}}</p>
 <p> Email: {{ profile_user.email }}</p>
 <p> favorite genre: {{ profile.favorite_genre }}</p>
 <p> Biography: {{ profile.biography }}</p>
+
+
+{% if profile_user == user %}
+    <a href="{% url 'edit_profile' %}" class="btn btn-success">Edit profile</a>
+{% endif %}
 
 {% endblock %}
