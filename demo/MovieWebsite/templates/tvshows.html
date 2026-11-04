@@ -1,10 +1,57 @@
-{% extends "base.html" %} {% block content %}
-<h1> TV Shows list </h1>
-<ul>
-    {% for tvshow in tvshows %}
-    <li>
-        {{ tvshow.title }}: {{ tvshow.year }} - {{tvshow.toyear}}
-    </li>
-    {% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">TV Shows</h1>
+
+    <div class="row">
+        {% for show in tvshows %}
+        <div class="col-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if show.poster_path %}
+                    <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
+                         class="card-img-top"
+                         alt="{{ show.title }}">
+                {% else %}
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center"
+                         style="height: 300px;">
+                        No poster available
+                    </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ show.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        {% if show.year %}
+                            {{ show.year }}{% if show.toyear %} – {{ show.toyear }}{% else %} – present{% endif %}
+                        {% else %}—{% endif %}
+                    </h6>
+
+                    <div class="mb-2">
+                        {% for genre in show.genres.all %}
+                            <span class="badge badge-secondary">{{ genre.name }}</span>
+                        {% empty %}
+                            <span class="text-muted">No genres available</span>
+                        {% endfor %}
+                    </div>
+                    <p class="card-text small text-muted">
+                        {{ show.overview|truncatechars:120 }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No TV shows found.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12 d-flex justify-content-center">
+            {% include "paginator.html" %}
+        </div>
+    </div>
+</div>
 {% endblock %}

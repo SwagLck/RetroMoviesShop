@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Movie, TvShow
 from .forms import ProfileForm, UserForm
@@ -9,12 +10,15 @@ def home(request):
     return render(request, "home.html")
 
 def movies(request):
-    items = Movie.objects.all()
-    return render(request, "movies.html", {"movies": items})
+    items = Movie.objects.prefetch_related("genres").order_by("-year", "title")
+    page = Paginator(items, 24).get_page(request.GET.get("page"))
+    return render(request, "movies.html", {"movies": page, "page_obj": page})
+
 
 def tvshows(request):
-    items = TvShow.objects.all()
-    return render(request, "tvshows.html", {"tvshows": items})
+    items = TvShow.objects.prefetch_related("genres").order_by("-year", "title")
+    page = Paginator(items, 24).get_page(request.GET.get("page"))
+    return render(request, "tvshows.html", {"tvshows": page, "page_obj": page})
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
