@@ -9,5 +9,6 @@ urlpatterns = [
     path("TvShows/<int:pk>/", views.tvshow_detail, name="tvshow_detail"),
     path("Users/", views.userslist, name="userslist"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
-    path("profile/<str:username>/", views.profile, name="profile")
+    path("profile/<str:username>/", views.profile, name="profile"),
+    path("profile/<str:username>/toggle-block/", views.toggle_block_user, name="toggle_block_user"),
 ]
