@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container my-4">
+        <a href="{% url 'tvshows' %}" class="btn btn-outline-secondary btn-sm mb-3">&larr;Back to TV Shows</a>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                {% if tvshow.poster_path %}
+                    <img src="https://image.tmdb.org/t/p/w500{{ tvshow.poster_path }}" 
+                         class="img-fluid rounded shadow-sm" 
+                         alt="{{ tvshow.name }}">
+                {% else %}
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 300px;">
+                        No poster available
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-8">
+                <h1>{{ tvshow.title }}</h1>
+                <p class="text-muted">
+                    {% if tvshow.year %}
+                        {{ tvshow.year }}
+                    {% else %}
+                        First air date not available
+                    {% endif %}
+                    {% if tvshow.rating %}
+                        | Rating: ★ {{ tvshow.rating }}
+                    {% else %}
+                        | Rating not available
+                    {% endif %}
+                </p>
+
+                <div class="mb-2">
+                    {% for genre in tvshow.genres.all %}
+                        <span class="badge badge-secondary">{{ genre.name }}</span>
+                    {% empty %}
+                        <span class="text-muted">No genres available</span>
+                    {% endfor %}
+                </div>
+
+                <p>{{ tvshow.overview|default:"No overview available." }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

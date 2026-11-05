@@ -19,7 +19,9 @@
                 {% endif %}
 
                 <div class="card-body">
-                    <h5 class="card-title">{{ show.title }}</h5>
+                    <h5 class="card-title">
+                        <a href="{% url 'tvshow_detail' show.pk %}" class="text-dark stretched-link">{{ show.title }}</a>
+                    </h5>
                     <h6 class="card-subtitle mb-2 text-muted">
                         {% if show.year %}
                             {{ show.year }}{% if show.toyear %} – {{ show.toyear }}{% else %} – present{% endif %}
@@ -38,9 +40,6 @@
                             <span class="text-muted">No genres available</span>
                         {% endfor %}
                     </div>
-                    <p class="card-text small text-muted">
-                        {{ show.overview|truncatechars:120 }}
-                    </p>
                 </div>
             </div>
         </div>
