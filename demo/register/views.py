@@ -7,8 +7,7 @@ def register(response):
     if response.method == "POST":
         form = RegisterForm(response.POST)
         if form.is_valid():
-            new_user = form.save()
-            Profile.objects.create(user=new_user)
+            form.save()
             return redirect("home")
     else:
         form = RegisterForm()
