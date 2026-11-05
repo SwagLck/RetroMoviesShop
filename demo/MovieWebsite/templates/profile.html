@@ -1,21 +1,32 @@
 {% extends "base.html" %} 
-
-{% load crispy_forms_tags %}
-
 {% block content %}
+<div class="container my-4">
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm mb-3">&larr; Back</a>
 
-<h1> Profile </h1>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title">{{ profile_user.username }}</h1>
+            <p class="text-muted">Member since {{ profile_user.date_joined|date:"F Y" }}</p>
 
-<h2> {{ profile_user.username }} </h2>
-<p> Name: {{ profile_user.first_name }}</p>
-<p> Last name: {{ profile_user.last_name}}</p>
-<p> Email: {{ profile_user.email }}</p>
-<p> favorite genre: {{ profile.favorite_genre }}</p>
-<p> Biography: {{ profile.biography }}</p>
+            <hr>
 
+            <h5>About</h5>
+            <p>{{ profile.biography|default:"No biography yet." }}</p>
 
-{% if profile_user == user %}
-    <a href="{% url 'edit_profile' %}" class="btn btn-success">Edit profile</a>
-{% endif %}
+            <h5>Favorite genre</h5>
+            <p>
+                {% if profile.favorite_genre %}
+                    <span class="badge badge-secondary">{{ profile.favorite_genre.name }}</span>
+                {% else %}
+                    <span class="text-muted">No favorite genre selected.</span>
+                {% endif %}
+            </p>
+
+            {% if request.user == profile_user %}
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
 {% endblock %}
