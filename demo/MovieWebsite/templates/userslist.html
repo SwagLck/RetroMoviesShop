@@ -12,6 +12,12 @@
                     {% if user.is_staff %}
                         <span class="badge badge-warning ml-2">Admin</span>
                     {% endif %}
+
+                    {% if user.is_active %}
+                        <span class="badge badge-success ml-2">Active</span>
+                    {% else %}
+                        <span class="badge badge-danger ml-2">Blocked</span>
+                    {% endif %}
                 </span>
                 <span class="text-muted">Joined {{ user.date_joined|date:"M D, Y" }}</span>
             </a>

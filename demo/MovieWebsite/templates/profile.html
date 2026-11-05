@@ -25,6 +25,21 @@
             {% if request.user == profile_user %}
                 <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
             {% endif %}
+
+            {% if not profile_user.is_active %}
+                <span class="badge badge-danger">This user is blocked</span>
+            {% endif %}
+
+            {% if perms.MovieWebsite.can_block_users and request.user != profile_user %}
+                <form method="post" action="{% url 'toggle_block_user' profile_user.username %}" class="d-inline">
+                    {% csrf_token %}
+                    {% if profile_user.is_active %}
+                        <button type="submit" class="btn btn-danger">Block User</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success">Unblock User</button>
+                    {% endif %}
+                </form>
+            {% endif %}
         </div>
     </div>
 </div>

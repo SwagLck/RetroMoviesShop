@@ -4,6 +4,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Movie, TvShow
 from .forms import ProfileForm, UserForm
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 def home(request):
@@ -30,7 +33,7 @@ def tvshow_detail(request, pk):
     return render(request, "tvshow_detail.html", {"tvshow": tvshow})
 
 @login_required
-@user_passes_test(lambda u: u.is_staff)
+@user_passes_test(lambda u: u.is_staff or u.has_perm("MovieWebsite.can_block_users"))
 def userslist(request):
     users = User.objects.all()
     return render(request, "userslist.html", {"users": users})
@@ -64,3 +67,24 @@ def edit_profile(request):
         "user_form": user_form,
         "profile_form": profile_form,
     })
+
+
+@login_required
+@require_POST
+def toggle_block_user(request, username):
+    if not request.user.has_perm("MovieWebsite.can_block_users"):
+        raise PermissionDenied
+
+    target = get_object_or_404(User, username=username)
+
+    if target == request.user:
+        messages.error(request, "You cannot block yourself.")
+    elif target.is_superuser or target.groups.filter(name="Moderator").exists():
+        messages.error(request, "You cannot block this user.")
+    else:
+        target.is_active = not target.is_active
+        target.save(update_fields=["is_active"])
+        state = "unblocked" if target.is_active else "blocked"
+        messages.success(request, f"User {target.username} has been {state}.")
+
+    return redirect("profile", username=username)

@@ -33,3 +33,6 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     biography=models.CharField(max_length=300)
     favorite_genre=models.CharField(max_length=50)
+
+    class Meta:
+        permissions = [("can_block_users", "Can block and unblock users")]
