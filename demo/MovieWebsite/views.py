@@ -20,6 +20,15 @@ def tvshows(request):
     page = Paginator(items, 24).get_page(request.GET.get("page"))
     return render(request, "tvshows.html", {"tvshows": page, "page_obj": page})
 
+
+def movie_detail(request, pk):
+    movie = get_object_or_404(Movie.objects.prefetch_related("genres"), pk=pk)
+    return render(request, "movie_detail.html", {"movie": movie})
+
+def tvshow_detail(request, pk):
+    tvshow = get_object_or_404(TvShow.objects.prefetch_related("genres"), pk=pk)
+    return render(request, "tvshow_detail.html", {"tvshow": tvshow})
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def userslist(request):
