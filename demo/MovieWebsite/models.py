@@ -17,6 +17,7 @@ class Movie(models.Model):
     overview = models.TextField(blank=True)
     poster_path = models.CharField(max_length=200, blank=True)
     genres = models.ManyToManyField(Genre, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
 
 class TvShow(models.Model):
     tmdb_id = models.IntegerField(unique=True, null=True, blank=True)
@@ -26,7 +27,7 @@ class TvShow(models.Model):
     overview = models.TextField(blank=True)
     poster_path = models.CharField(max_length=200, blank=True)
     genres = models.ManyToManyField(Genre, blank=True)
-
+    rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

@@ -24,6 +24,11 @@
                         {% if show.year %}
                             {{ show.year }}{% if show.toyear %} – {{ show.toyear }}{% else %} – present{% endif %}
                         {% else %}—{% endif %}
+                        {% if show.rating %}
+                            | Rating: {{ show.rating }}
+                        {% else %}
+                            | Rating not available
+                        {% endif %}
                     </h6>
 
                     <div class="mb-2">
