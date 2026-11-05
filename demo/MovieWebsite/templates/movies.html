@@ -25,6 +25,11 @@
                             {% else %}
                                 Year not available
                             {% endif %}
+                            {% if movie.rating %}
+                                | Rating: {{ movie.rating }}
+                            {% else %}
+                                | Rating not available
+                            {% endif %}
                         </h6>
                         
                         <div class="mb-2">

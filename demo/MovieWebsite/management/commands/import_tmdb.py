@@ -48,7 +48,8 @@ class Command(BaseCommand):
                         "title": m["title"],
                         "year": year_of(m.get("release_date","")),
                         "overview": m.get("overview", ""),
-                        "poster_path": m.get("poster_path", "")
+                        "poster_path": m.get("poster_path", ""),
+                        "rating": round(m.get("vote_average") or 0, 1),
                     },
                 )
                 movie.genres.set(
@@ -71,7 +72,7 @@ class Command(BaseCommand):
                         "toyear": year_of(t.get("last_air_date", "")),
                         "overview": t.get("overview", ""),
                         "poster_path": t.get("poster_path", ""),
-                        "ended": ended
+                        "rating": round(t.get("vote_average") or 0, 1),
                     }
                 )
 
