@@ -16,7 +16,7 @@
             <h5>Favorite genre</h5>
             <p>
                 {% if profile.favorite_genre %}
-                    <span class="badge badge-secondary">{{ profile.favorite_genre.name }}</span>
+                    <span class="badge badge-secondary">{{ profile.favorite_genre }}</span>
                 {% else %}
                     <span class="text-muted">No favorite genre selected.</span>
                 {% endif %}
