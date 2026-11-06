@@ -29,6 +29,22 @@ class TvShow(models.Model):
     genres = models.ManyToManyField(Genre, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
 
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=True, blank=True, related_name="comments")
+    tvshow = models.ForeignKey(TvShow, on_delete=models.CASCADE, null=True, blank=True, related_name="comments")
+    text = models.TextField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        permissions = [
+            ("can_delete_comments", "Can delete any comment"),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username}: {self.text[:30]}"
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     biography=models.CharField(max_length=300)
