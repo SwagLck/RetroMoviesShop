@@ -47,8 +47,8 @@ class Command(BaseCommand):
                     defaults={
                         "title": m["title"],
                         "year": year_of(m.get("release_date","")),
-                        "overview": m.get("overview", ""),
-                        "poster_path": m.get("poster_path", ""),
+                        "overview": m.get("overview") or "",
+                        "poster_path": m.get("poster_path") or "",
                         "rating": round(m.get("vote_average") or 0, 1),
                     },
                 )
@@ -70,8 +70,8 @@ class Command(BaseCommand):
                         "title": t["name"],
                         "year": year_of(t.get("first_air_date", "")),
                         "toyear": year_of(t.get("last_air_date", "")),
-                        "overview": t.get("overview", ""),
-                        "poster_path": t.get("poster_path", ""),
+                        "overview": t.get("overview") or "",
+                        "poster_path": t.get("poster_path") or "",
                         "rating": round(t.get("vote_average") or 0, 1),
                     }
                 )
