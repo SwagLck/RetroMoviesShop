@@ -42,5 +42,56 @@
                 <p>{{ movie.overview|default:"No overview available." }}</p>
             </div>
         </div>
+
+
+
+        <hr class="my-4">
+
+        <h4 class="mb-4">
+            Comments <span class="badge badge-pill badge-secondary">{{ comments|length }}</span>
+        </h4>
+
+        {% if user.is_authenticated %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.text }}
+                        <div class="text-right mt-2">
+                            <button type="submit" class="btn btn-primary">Post comment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-light border mb-4">
+                <a href="{% url 'login' %}">Log in</a> to leave a comment.
+            </div>
+        {% endif %}
+
+        {% for comment in comments %}
+            <div class="bg-white border rounded shadow-sm p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <a href="{% url 'profile' comment.user.username %}" class="font-weight-bold text-dark">
+                        {{ comment.user.username }}
+                    </a>
+                    <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
+                </div>
+
+                <p class="mb-2">{{ comment.text|linebreaksbr }}</p>
+
+                {% if user == comment.user or user.is_staff or perms.MovieWebsite.can_block_users %}
+                    <form method="post" action="{% url 'delete_comment' comment.pk %}" class="text-right">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Delete this comment?');">Delete</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="text-center text-muted py-4">
+                No comments yet. Be the first!
+            </div>
+        {% endfor %}
     </div>
 {% endblock %}

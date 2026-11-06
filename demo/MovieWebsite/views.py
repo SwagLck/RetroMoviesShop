@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Movie, TvShow
-from .forms import ProfileForm, UserForm
+from .models import Movie, TvShow, Comment
+from .forms import ProfileForm, UserForm, CommentForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
@@ -26,11 +26,49 @@ def tvshows(request):
 
 def movie_detail(request, pk):
     movie = get_object_or_404(Movie.objects.prefetch_related("genres"), pk=pk)
-    return render(request, "movie_detail.html", {"movie": movie})
+    
+    if request.method == "POST":
+        if not request.user.is_authenticated:
+            return redirect("login")
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.movie = movie
+            comment.save()
+            return redirect("movie_detail", pk=movie.pk)
+    else:
+        form = CommentForm()
+
+    comments = movie.comments.select_related("user")
+    return render(request, "movie_detail.html", {
+        "movie": movie,
+        "comments": comments,
+        "form": form,
+    })
 
 def tvshow_detail(request, pk):
     tvshow = get_object_or_404(TvShow.objects.prefetch_related("genres"), pk=pk)
-    return render(request, "tvshow_detail.html", {"tvshow": tvshow})
+    
+    if request.method == "POST":
+        if not request.user.is_authenticated:
+            return redirect("login")
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.tvshow = tvshow
+            comment.save()
+            return redirect("tvshow_detail", pk=tvshow.pk)
+    else:
+        form = CommentForm()
+
+    comments = tvshow.comments.select_related("user")
+    return render(request, "tvshow_detail.html", {
+        "tvshow": tvshow,
+        "comments": comments,
+        "form": form,
+    })
 
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.has_perm("MovieWebsite.can_block_users"))
@@ -88,3 +126,24 @@ def toggle_block_user(request, username):
         messages.success(request, f"User {target.username} has been {state}.")
 
     return redirect("profile", username=username)
+
+@login_required
+@require_POST
+def delete_comment(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    can_delete = (
+        comment.user == request.user
+        or request.user.is_staff
+        or request.user.has_perm("MovieWebsite.can_block_users")
+    )
+
+    if not can_delete:
+        raise PermissionDenied
+
+    comment.delete()
+    messages.success(request, "Comment deleted.")
+
+    if comment.movie_id:
+        return redirect("movie_detail", pk=comment.movie_id)
+    return redirect("tvshow_detail", pk=comment.tvshow_id)
