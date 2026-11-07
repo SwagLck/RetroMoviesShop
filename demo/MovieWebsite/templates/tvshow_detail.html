@@ -68,7 +68,7 @@
         {% endif %}
 
         {% for comment in comments %}
-            <div class="bg-white border rounded shadow-sm p-3 mb-3">
+            <div id="comment-{{ comment.pk }}" class="bg-white border rounded shadow-sm p-3 mb-3 {% if comment.is_hidden %}bg-light{% endif %}">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <a href="{% url 'profile' comment.user.username %}" class="font-weight-bold text-dark">
                         {{ comment.user.username }}
@@ -76,19 +76,45 @@
                     <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
                 </div>
 
-                <p class="mb-2">{{ comment.text|linebreaksbr }}</p>
-
-                {% if user == comment.user or user.is_staff or perms.MovieWebsite.can_block_users %}
-                    <form method="post" action="{% url 'delete_comment' comment.pk %}" class="text-right">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="return confirm('Delete this comment?');">Delete</button>
-                    </form>
+                {% if comment.is_hidden %}
+                    {% if user.is_staff or perms.MovieWebsite.can_block_users %}
+                        <span class="badge badge-warning mb-1">Hidden</span>
+                        <p class="mb-2 text-muted">{{ comment.text|linebreaksbr }}</p>
+                    {% else %}
+                        <p class="mb-2 text-muted font-italic">This comment was hidden by a moderator.</p>
+                    {% endif %}
+                {% else %}
+                    <p class="mb-2">{{ comment.text|linebreaksbr }}</p>
                 {% endif %}
+
+                <div class="text-right">
+                    {% if user.is_staff or perms.MovieWebsite.can_block_users %}
+                        <form method="post" action="{% url 'toggle_hide_comment' comment.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                {% if comment.is_hidden %}Unhide{% else %}Hide{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if user == comment.user %}
+                        <form method="post" action="{% url 'delete_comment' comment.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    {% endif %}
+
+                    {% if user.is_authenticated and user != comment.user and not comment.is_hidden %}
+                        <form method="post" action="{% url 'report_comment' comment.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-warning">Report</button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
         {% empty %}
             <div class="text-center text-muted py-4">
-                No comments yet. Be the first!
+                Real quiet down here...
             </div>
         {% endfor %}
     </div>

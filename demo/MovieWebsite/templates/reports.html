@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Reports</h1>
+
+    <div class="list-group">
+        {% for report in reports %}
+            <a href="{% if report.comment.movie_id %}{% url 'movie_detail' report.comment.movie_id %}{% else %}{% url 'tvshow_detail' report.comment.tvshow_id %}{% endif %}#comment-{{ report.comment.pk }}"
+               class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between">
+                    <strong>
+                        {% if report.comment.movie %}{{ report.comment.movie.title }}{% else %}{{ report.comment.tvshow.title }}{% endif %}
+                    </strong>
+                    <small class="text-muted">{{ report.created_at|timesince }} ago</small>
+                </div>
+                <p class="mb-1">{{ report.comment.text|truncatechars:120 }}</p>
+                <small class="text-muted">
+                    Comment by {{ report.comment.user.username }} &middot; reported by {{ report.reporter.username }}
+                    {% if report.comment.is_hidden %}&middot; <span class="badge badge-warning">Hidden</span>{% endif %}
+                </small>
+            </a>
+        {% empty %}
+            <div class="alert alert-info">No reports.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

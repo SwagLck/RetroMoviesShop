@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Movie, TvShow, Comment
+from .models import Movie, TvShow, Comment, Report
 from .forms import ProfileForm, UserForm, CommentForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
@@ -127,23 +127,66 @@ def toggle_block_user(request, username):
 
     return redirect("profile", username=username)
 
-@login_required
-@require_POST
-def delete_comment(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
 
-    can_delete = (
-        comment.user == request.user
-        or request.user.is_staff
-        or request.user.has_perm("MovieWebsite.can_block_users")
-    )
+def _can_moderate(user):
+    return user.is_staff or user.has_perm("MovieWebsite.can_block_users")
 
-    if not can_delete:
-        raise PermissionDenied
 
-    comment.delete()
-    messages.success(request, "Comment deleted.")
-
+def _back_to_item(comment):
     if comment.movie_id:
         return redirect("movie_detail", pk=comment.movie_id)
     return redirect("tvshow_detail", pk=comment.tvshow_id)
+
+
+@login_required
+@require_POST
+def delete_comment(request, pk):
+    comment = get_object_or_404(request, pk)
+
+    if comment.user != request.user:
+        raise PermissionDenied
+
+    comment.delete()
+    messages.success(request, "Comment deleted")
+    return _back_to_item(comment)
+
+@login_required
+@require_POST
+def toggle_hide_comment(request, pk):
+    if not _can_moderate(request.user):
+        raise PermissionDenied
+
+    comment = get_object_or_404(Comment, pk=pk)
+    comment.is_hidden= not comment.is_hidden
+    comment.save(update_fields=["is_hidden"])
+
+    state = "hidden" if comment.is_hidden else "visible again"
+    messages.success(request, f"Comment is now {state}.")
+    return _back_to_item(comment)
+
+@login_required
+@require_POST
+def report_comment(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.user == request.user:
+        messages.error(request, "You can't report your own comment.")
+    else:
+        _, created = Report.objects.get_or_create(comment=comment, reporter=request.user)
+        if created:
+            messages.success(request, "Thanks, the comment has been reported")
+        else:
+            messages.info(request, "You have already reported this comment")
+
+    return _back_to_item(comment)
+
+
+@login_required
+def reports_list(request):
+    if not _can_moderate(request.user):
+        raise PermissionDenied
+
+    reports = Report.objects.select_related(
+        "reporter", "comment__user", "comment__movie", "comment__tvshow"
+    )
+    return render(request, "reports.html", {"reports": reports})

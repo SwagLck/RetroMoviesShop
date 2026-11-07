@@ -35,6 +35,7 @@ class Comment(models.Model):
     tvshow = models.ForeignKey(TvShow, on_delete=models.CASCADE, null=True, blank=True, related_name="comments")
     text = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_hidden = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]
@@ -52,3 +53,17 @@ class Profile(models.Model):
 
     class Meta:
         permissions = [("can_block_users", "Can block and unblock users")]
+
+class Report(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="reports")
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports_made")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["comment", "reporter"], name="one_report_per_user_per_comment"),
+        ]
+
+    def __str__(self):
+        return f"Reported by {self.reporter.username} on comment {self.comment_id}"

@@ -116,6 +116,10 @@
             <li>
                 <a href="{% url 'userslist' %}">Users</a>
             </li>
+
+            <li>
+                <a href="{% url 'reports_list' %}">Reports</a>
+            </li>
             {% endif %}
 
             {% if user.is_authenticated %}
