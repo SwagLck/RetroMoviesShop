@@ -29,7 +29,16 @@
                     {% else %}
                         | Rating not available
                     {% endif %}
+
+
+                    <div class="btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-outline-primary">
+                            <input type="checkbox" name="like" value="1">Add to favourites
+                        </label>
+                    </div>
                 </p>
+
+                
 
                 <div class="mb-2">
                     {% for genre in tvshow.genres.all %}
@@ -40,6 +49,10 @@
                 </div>
 
                 <p>{{ tvshow.overview|default:"No overview available." }}</p>
+
+                <div class="mt-5">
+                    <button type="button" class="btn btn-success">Add to cart</button>
+                </div>
             </div>
         </div>
 
