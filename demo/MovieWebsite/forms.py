@@ -13,17 +13,18 @@ class ProfileForm(forms.ModelForm):
         model = Profile
         fields = ["biography", "favorite_genre"]
 
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ["text"]
+        fields = ["rating", "text"]
         widgets = {
-            "text": forms.Textarea(attrs={"rows": 3,
-            "class": "form-control",
-            "placeholder": "Write a comment..."
+            "rating": forms.HiddenInput(),
+            "text": forms.Textarea(attrs={
+                "rows": 3,
+                "class": "form-control",
+                "placeholder": "Write a comment..."
             }),
         }
-        labels = {"text": ""}
-    
 
 
