@@ -12,6 +12,9 @@ from django.views.decorators.http import require_POST
 def home(request):
     return render(request, "home.html")
 
+def admin_panel(request):
+    return render(request, "admin_panel.html")
+
 def movies(request):
     items = Movie.objects.prefetch_related("genres").order_by("-year", "title")
     page = Paginator(items, 24).get_page(request.GET.get("page"))

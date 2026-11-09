@@ -12,6 +12,7 @@ urlpatterns = [
     path("comments/<int:pk>/report/", views.report_comment, name="report_comment"),
     path("reports/", views.reports_list, name="reports_list"),
     path("Users/", views.userslist, name="userslist"),
+    path("AdminPanel/", views.admin_panel, name="admin_panel"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path("profile/<str:username>/", views.profile, name="profile"),
     path("profile/<str:username>/toggle-block/", views.toggle_block_user, name="toggle_block_user"),
