@@ -112,13 +112,19 @@
                 <a href="{% url 'tvshows' %}">TV Shows</a>
             </li>
 
-            {% if user.is_staff or perms.MovieWebsite.can_block_users %}
+            {% if perms.MovieWebsite.can_block_users %}
             <li>
                 <a href="{% url 'userslist' %}">Users</a>
             </li>
 
             <li>
                 <a href="{% url 'reports_list' %}">Reports</a>
+            </li>
+            {% endif %}
+
+            {% if user.is_staff %}
+            <li>
+                <a href="{% url 'admin_panel' %}">Admin panel</a>
             </li>
             {% endif %}
 
