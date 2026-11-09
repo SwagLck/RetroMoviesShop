@@ -15,6 +15,18 @@ def home(request):
 def admin_panel(request):
     return render(request, "admin_panel.html")
 
+def discount_add(request):
+    return render(request, "discount_add.html")
+
+def history(request):
+    return render(request, "history.html")
+
+def order(request):
+    return render(request, "order.html")
+
+def subscriptions(request):
+    return render(request, "subscriptions.html")
+
 def movies(request):
     items = Movie.objects.prefetch_related("genres").order_by("-year", "title")
     page = Paginator(items, 24).get_page(request.GET.get("page"))
