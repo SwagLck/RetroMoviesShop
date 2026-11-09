@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
+from django.db.models import Avg, Count, Q
+from .models import Genre
 
 # Create your views here.
 def home(request):
@@ -39,28 +41,53 @@ def tvshows(request):
     return render(request, "tvshows.html", {"tvshows": page, "page_obj": page})
 
 
+
 def movie_detail(request, pk):
-    movie = get_object_or_404(Movie.objects.prefetch_related("genres"), pk=pk)
-    
+    movie = get_object_or_404(
+        Movie.objects.prefetch_related("genres"),
+        pk=pk
+    )
+
+    already_reviewed = False
+
+    if request.user.is_authenticated:
+        already_reviewed = Comment.objects.filter(
+            user=request.user,
+            movie=movie
+        ).exists()
+
     if request.method == "POST":
         if not request.user.is_authenticated:
             return redirect("login")
+
+        if already_reviewed:
+            messages.error(
+                request,
+                "You have already reviewed this movie."
+            )
+            return redirect("movie_detail", pk=movie.pk)
+
         form = CommentForm(request.POST)
+
         if form.is_valid():
             comment = form.save(commit=False)
             comment.user = request.user
             comment.movie = movie
             comment.save()
+
             return redirect("movie_detail", pk=movie.pk)
     else:
         form = CommentForm()
 
     comments = movie.comments.select_related("user")
+
     return render(request, "movie_detail.html", {
         "movie": movie,
         "comments": comments,
         "form": form,
+        "already_reviewed": already_reviewed,
     })
+
 
 def tvshow_detail(request, pk):
     tvshow = get_object_or_404(TvShow.objects.prefetch_related("genres"), pk=pk)
@@ -156,7 +183,7 @@ def _back_to_item(comment):
 @login_required
 @require_POST
 def delete_comment(request, pk):
-    comment = get_object_or_404(request, pk)
+    comment = get_object_or_404(Comment, pk=pk)
 
     if comment.user != request.user:
         raise PermissionDenied
@@ -205,3 +232,81 @@ def reports_list(request):
         "reporter", "comment__user", "comment__movie", "comment__tvshow"
     )
     return render(request, "reports.html", {"reports": reports})
+
+
+def movie_statistics(request):
+    movies = Movie.objects.all()
+
+    genre = request.GET.get("genre", "")
+    year = request.GET.get("year", "")
+    min_rating = request.GET.get("min_rating", "")
+    min_count = request.GET.get("min_count", "")
+
+    if genre.isdigit():
+        movies = movies.filter(genres__id=int(genre))
+
+    if year.isdigit():
+        movies = movies.filter(year=int(year))
+
+    movies = movies.annotate(
+        average_rating=Avg(
+            "comments__rating",
+            filter=Q(comments__is_hidden=False)
+        ),
+        rating_count=Count(
+            "comments",
+            filter=Q(
+                comments__is_hidden=False,
+                comments__rating__isnull=False
+            )
+        )
+    ).filter(rating_count__gt=0)
+
+    try:
+        if min_rating:
+            movies = movies.filter(
+                average_rating__gte=float(min_rating)
+            )
+    except ValueError:
+        pass
+
+    if min_count.isdigit():
+        movies = movies.filter(
+            rating_count__gte=int(min_count)
+        )
+
+    movies = movies.order_by("-average_rating", "title")
+
+    return render(request, "movie_statistics.html", {
+        "movies": movies,
+        "genres": Genre.objects.order_by("name"),
+        "selected_genre": genre,
+        "selected_year": year,
+        "selected_rating": min_rating,
+        "selected_count": min_count,
+    })
+    
+@login_required
+@require_POST
+def edit_comment(request, pk):
+    comment = get_object_or_404(
+        Comment,
+        pk=pk,
+        user=request.user
+    )
+
+    form = CommentForm(request.POST, instance=comment)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Review updated successfully.")
+    else:
+        messages.error(request, "Could not update review. Check your input.")
+
+    if comment.movie_id:
+        return redirect("movie_detail", pk=comment.movie_id)
+
+    if comment.tvshow_id:
+        return redirect("tvshow_detail", pk=comment.tvshow_id)
+
+    return redirect("home")

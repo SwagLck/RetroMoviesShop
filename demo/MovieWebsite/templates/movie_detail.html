@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block content %}
     <div class="container my-4">
@@ -6,8 +7,8 @@
         <div class="row">
             <div class="col-md-4 mb-4">
                 {% if movie.poster_path %}
-                    <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" 
-                         class="img-fluid rounded shadow-sm" 
+                    <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                         class="img-fluid rounded shadow-sm"
                          alt="{{ movie.title }}">
                 {% else %}
                     <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 300px;">
@@ -52,26 +53,63 @@
             </div>
         </div>
 
-
-
         <hr class="my-4">
 
         <h4 class="mb-4">
             Comments <span class="badge badge-pill badge-secondary">{{ comments|length }}</span>
         </h4>
 
-        {% if user.is_authenticated %}
-            <div class="card shadow-sm mb-4">
+        {% if user.is_authenticated and already_reviewed %}
+            <div class="alert alert-info">
+                You have already reviewed this movie.
+                You can edit or delete your existing review below.
+            </div>
+
+        {% elif user.is_authenticated %}
+            <div class="card mb-4">
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        {{ form.text }}
+
+                        <label class="d-block mb-2">
+                            Your rating (1–10)
+                        </label>
+
+                        {{ form.rating }}
+
+                        <div class="star-rating mb-2" id="star-rating">
+                            {% for value, label in form.fields.rating.choices %}
+                                {% if value %}
+                                    <button type="button"
+                                            class="rating-star"
+                                            data-value="{{ value }}"
+                                            aria-label="Rate {{ value }} out of 10">
+                                        ★
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <small id="rating-label" class="text-muted d-block mb-3">
+                            Select a rating from 1 to 10
+                        </small>
+
+                        {{ form.rating.errors }}
+
+                        <div class="form-group">
+                            {{ form.text }}
+                            {{ form.text.errors }}
+                        </div>
+
                         <div class="text-right mt-2">
-                            <button type="submit" class="btn btn-primary">Post comment</button>
+                            <button type="submit" class="btn btn-primary">
+                                Post comment
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
+
         {% else %}
             <div class="alert alert-light border mb-4">
                 <a href="{% url 'login' %}">Log in</a> to leave a comment.
@@ -79,12 +117,17 @@
         {% endif %}
 
         {% for comment in comments %}
-            <div id="comment-{{ comment.pk }}" class="bg-white border rounded shadow-sm p-3 mb-3 {% if comment.is_hidden %}bg-light{% endif %}">
+            <div id="comment-{{ comment.pk }}"
+                 class="bg-white border rounded shadow-sm p-3 mb-3 {% if comment.is_hidden %}bg-light{% endif %}">
+
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <a href="{% url 'profile' comment.user.username %}" class="font-weight-bold text-dark">
+                    <a href="{% url 'profile' comment.user.username %}"
+                       class="font-weight-bold text-dark">
                         {{ comment.user.username }}
                     </a>
-                    <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
+                    <small class="text-muted">
+                        {{ comment.created_at|timesince }} ago
+                    </small>
                 </div>
 
                 {% if comment.is_hidden %}
@@ -92,41 +135,241 @@
                         <span class="badge badge-warning mb-1">Hidden</span>
                         <p class="mb-2 text-muted">{{ comment.text|linebreaksbr }}</p>
                     {% else %}
-                        <p class="mb-2 text-muted font-italic">This comment was hidden by a moderator.</p>
+                        <p class="mb-2 text-muted font-italic">
+                            This comment was hidden by a moderator.
+                        </p>
                     {% endif %}
                 {% else %}
+                    <span class="badge badge-warning mb-2">
+                        ★ {{ comment.rating }}/10
+                    </span>
                     <p class="mb-2">{{ comment.text|linebreaksbr }}</p>
                 {% endif %}
 
                 <div class="text-right">
-                    {% if user.is_staff or perms.MovieWebsite.can_block_users %}
-                        <form method="post" action="{% url 'toggle_hide_comment' comment.pk %}" class="d-inline">
+                    {% if user == comment.user %}
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary mr-2"
+                                onclick="toggleEdit('{{ comment.pk }}')">
+                            Edit
+                        </button>
+
+                        <form method="post"
+                              action="{% url 'delete_comment' comment.pk %}"
+                              class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                {% if comment.is_hidden %}Unhide{% else %}Hide{% endif %}
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-danger">
+                                Delete
                             </button>
                         </form>
                     {% endif %}
 
-                    {% if user == comment.user %}
-                        <form method="post" action="{% url 'delete_comment' comment.pk %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
-                    {% endif %}
-
                     {% if user.is_authenticated and user != comment.user and not comment.is_hidden %}
-                        <form method="post" action="{% url 'report_comment' comment.pk %}" class="d-inline">
+                        <form method="post"
+                              action="{% url 'report_comment' comment.pk %}"
+                              class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-warning">Report</button>
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-warning">
+                                Report
+                            </button>
                         </form>
                     {% endif %}
                 </div>
+
+                {% if user == comment.user %}
+                    <div id="edit-{{ comment.pk }}"
+                         class="edit-review-form mt-3 p-3 border rounded"
+                         style="display: none; background: #f8f9fa;">
+
+                        <form method="post"
+                              action="{% url 'edit_comment' comment.pk %}">
+                            {% csrf_token %}
+
+                            <label class="d-block mb-2">
+                                Edit rating (1–10)
+                            </label>
+
+                            <input type="hidden"
+                                   name="rating"
+                                   id="edit-rating-{{ comment.pk }}"
+                                   value="{{ comment.rating }}">
+
+                            <div class="edit-stars mb-2"
+                                 data-comment="{{ comment.pk }}">
+                                {% for value, label in form.fields.rating.choices %}
+                                    {% if value %}
+                                        <button type="button"
+                                                class="rating-star"
+                                                data-value="{{ value }}"
+                                                onclick="setEditRating(this.closest('.edit-stars').dataset.comment, Number(this.dataset.value))"
+                                                aria-label="Rate {{ value }} out of 10">
+                                            ★
+                                        </button>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <small id="edit-label-{{ comment.pk }}"
+                                   class="text-muted d-block mb-3">
+                                {{ comment.rating }}/10
+                            </small>
+
+                            <label for="edit-text-{{ comment.pk }}">
+                                Your review
+                            </label>
+
+                            <textarea name="text"
+                                      id="edit-text-{{ comment.pk }}"
+                                      class="form-control mb-3"
+                                      rows="3"
+                                      maxlength="1000"
+                                      required>{{ comment.text }}</textarea>
+
+                            <button type="submit"
+                                    class="btn btn-primary btn-sm">
+                                Save changes
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    onclick="toggleEdit('{{ comment.pk }}')">
+                                Cancel
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
             </div>
+
         {% empty %}
             <div class="text-center text-muted py-4">
                 Real quiet down here...
             </div>
         {% endfor %}
     </div>
+
+<style>
+.rating-star {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0 2px;
+    transition: color 0.1s;
+}
+
+.rating-star.active {
+    color: #ffc107;
+}
+
+.rating-star:focus-visible {
+    outline: 2px solid #007bff;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("star-rating");
+    const input = document.getElementById("id_rating");
+    const label = document.getElementById("rating-label");
+
+    if (container && input) {
+        const stars = [...container.querySelectorAll(".rating-star")];
+        let selected = Number(input.value) || 0;
+
+        function highlight(value) {
+            stars.forEach(star => {
+                const rating = Number(star.dataset.value);
+                star.classList.toggle("active", rating <= value);
+            });
+        }
+
+        stars.forEach(star => {
+            const value = Number(star.dataset.value);
+
+            star.addEventListener("mouseenter", () => highlight(value));
+
+            star.addEventListener("click", () => {
+                selected = value;
+                input.value = value;
+                label.textContent = value + "/10";
+                highlight(selected);
+            });
+        });
+
+        container.addEventListener("mouseleave", () => {
+            highlight(selected);
+        });
+
+        highlight(selected);
+
+        if (selected) {
+            label.textContent = selected + "/10";
+        }
+    }
+
+    // Initialize edit forms
+    document.querySelectorAll(".edit-stars").forEach(container => {
+        const commentId = container.dataset.comment;
+        const input = document.getElementById("edit-rating-" + commentId);
+
+        container.querySelectorAll(".rating-star").forEach(star => {
+            star.addEventListener("mouseenter", () => {
+                highlightEditStars(
+                    commentId,
+                    Number(star.dataset.value)
+                );
+            });
+        });
+
+        container.addEventListener("mouseleave", () => {
+            highlightEditStars(commentId, Number(input.value));
+        });
+
+        highlightEditStars(commentId, Number(input.value));
+    });
+});
+
+function toggleEdit(commentId) {
+    const editForm = document.getElementById("edit-" + commentId);
+
+    if (!editForm) return;
+
+    const isHidden = editForm.style.display === "none";
+    editForm.style.display = isHidden ? "block" : "none";
+
+    if (isHidden) {
+        const input = document.getElementById("edit-rating-" + commentId);
+        highlightEditStars(commentId, Number(input.value));
+    }
+}
+
+function highlightEditStars(commentId, rating) {
+    const container = document.querySelector(
+        '.edit-stars[data-comment="' + commentId + '"]'
+    );
+
+    if (!container) return;
+
+    container.querySelectorAll(".rating-star").forEach(star => {
+        const value = Number(star.dataset.value);
+        star.classList.toggle("active", value <= rating);
+    });
+}
+
+function setEditRating(commentId, rating) {
+    const input = document.getElementById("edit-rating-" + commentId);
+    const label = document.getElementById("edit-label-" + commentId);
+
+    if (!input || !label) return;
+
+    input.value = rating;
+    label.textContent = rating + "/10";
+
+    highlightEditStars(commentId, rating);
+}
+</script>
+
 {% endblock %}

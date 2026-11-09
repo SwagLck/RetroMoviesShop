@@ -20,4 +20,8 @@ urlpatterns = [
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path("profile/<str:username>/", views.profile, name="profile"),
     path("profile/<str:username>/toggle-block/", views.toggle_block_user, name="toggle_block_user"),
+    path("", views.home, name="home"),
+    path("MovieStatistics/", views.movie_statistics, name="movie_statistics"),
+    path(
+    "comments/<int:pk>/edit/",views.edit_comment,name="edit_comment")
 ]

@@ -1,0 +1,106 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Movie Rating Statistics</h2>
+    <p>Ratings submitted by our users.</p>
+
+    <form method="get" class="row mb-4">
+        <div class="col-md-3">
+            <label>Genre</label>
+            <select name="genre" class="form-control">
+                <option value="">All genres</option>
+                {% for genre in genres %}
+                <option value="{{ genre.id }}"
+                    {% if selected_genre == genre.id|stringformat:"s" %}selected{% endif %}>
+                    {{ genre.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            
+<label>Year</label>
+<input type="number"
+       name="year"
+       min="1888"
+       max="2100"
+       step="1"
+       class="form-control"
+       value="{{ selected_year }}"
+       placeholder="e.g. 2020">
+
+        </div>
+
+        <div class="col-md-2">
+           
+<label>Min rating</label>
+<select name="min_rating" class="form-control">
+    <option value="">Any rating</option>
+    {% for value in "123456789" %}
+        <option value="{{ value }}"
+            {% if selected_rating == value %}selected{% endif %}>
+            {{ value }}+
+        </option>
+    {% endfor %}
+    <option value="10"
+        {% if selected_rating == "10" %}selected{% endif %}>
+        10
+    </option>
+</select>
+
+        </div>
+
+        <div class="col-md-3">
+            <label>Min rating count</label>
+            <input type="number" name="min_count"
+                   min="1"
+                   class="form-control"
+                   value="{{ selected_count }}">
+        </div>
+
+        <div class="col-md-2">
+            <label>&nbsp;</label>
+            <button type="submit"
+                    class="btn btn-primary btn-block">
+                Filter
+            </button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Movie</th>
+                <th>Year</th>
+                <th>Average rating</th>
+                <th>Ratings</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movie in movies %}
+            <tr>
+                <td>
+                    <a href="{% url 'movie_detail' movie.pk %}">
+                        {{ movie.title }}
+                    </a>
+                </td>
+                <td>{{ movie.year }}</td>
+                <td>
+                    ★ {{ movie.average_rating|floatformat:1 }}/10
+                </td>
+                <td>{{ movie.rating_count }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">
+                    No rated movies found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
